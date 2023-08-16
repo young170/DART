@@ -41,13 +41,9 @@ char get_op(string opstr) {
 }
 
 int main() {
-    // int a { get_int() };                        // initialize a with user's input
-    // char op { get_op("+-*/") };                 // get an operator chosen by user
-    // int b { get_int() };                        // initialize b with user's input
-
-    int a = 1;
-    char op = '+';
-    int b = 1; 
+    int a { get_int() };                        // initialize a with user's input
+    char op { get_op("+-*/") };                 // get an operator chosen by user
+    int b { get_int() };                        // initialize b with user's input
 
     int (*fp)(int, int) = add;                  // declare a function pointer
     switch(op) {

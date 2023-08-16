@@ -1,5 +1,6 @@
 #include <iostream>
 #include <fstream>
+#include <filesystem>
 #include <string>
 #include <vector>
 #include <sstream>
@@ -59,41 +60,52 @@ command_line_args *parse_command_line_args(int argc, char* argv[]) {
     return args;
 }
 
-bool compile_and_run(const std::string& solution_path, const std::string& student_path, const std::string& args) {
+bool compile_and_run(const std::string& solution_path, const std::string& student_path, const std::string& args, const std::string& input_dir) {
     // Compile solution
-    std::string compile_command_solution = "g++ " + solution_path + " -o solution";
+    std::string compile_command_solution = "g++ -std=c++11 " + solution_path + " -o solution";
     if (std::system(compile_command_solution.c_str()) != 0) {
         std::cerr << "Error compiling solution" << std::endl;
         return false;
     }
 
     // Compile student's code
-    std::string compile_command_student = "g++ " + student_path + " -o student";
+    std::string compile_command_student = "g++ -std=c++11 " + student_path + " -o student";
     if (std::system(compile_command_student.c_str()) != 0) {
         std::cerr << "Error compiling student's code" << std::endl;
         return false;
     }
 
+    // Prepare the input files
+    std::vector<std::string> input_files;
+    std::string input_path = input_dir + "/";
+    for (const auto& entry : std::__fs::filesystem::directory_iterator(input_path)) {
+        input_files.push_back(entry.path().string());
+    }
+
     // Run solution
     std::string solution_output = "";
-    FILE* solution_output_file = popen(("solution " + args).c_str(), "r");
-    if (solution_output_file) {
-        char buffer[128];
-        while (fgets(buffer, sizeof(buffer), solution_output_file) != nullptr) {
-            solution_output += buffer;
+    for (const std::string& input_file : input_files) {
+        FILE* solution_output_file = popen(("./solution " + args + " < " + input_file).c_str(), "r");
+        if (solution_output_file) {
+            char buffer[128];
+            while (fgets(buffer, sizeof(buffer), solution_output_file) != nullptr) {
+                solution_output += buffer;
+            }
+            pclose(solution_output_file);
         }
-        pclose(solution_output_file);
     }
 
     // Run student's code
     std::string student_output = "";
-    FILE* student_output_file = popen(("student " + args).c_str(), "r");
-    if (student_output_file) {
-        char buffer[128];
-        while (fgets(buffer, sizeof(buffer), student_output_file) != nullptr) {
-            student_output += buffer;
+    for (const std::string& input_file : input_files) {
+        FILE* student_output_file = popen(("./student " + args + " < " + input_file).c_str(), "r");
+        if (student_output_file) {
+            char buffer[128];
+            while (fgets(buffer, sizeof(buffer), student_output_file) != nullptr) {
+                student_output += buffer;
+            }
+            pclose(student_output_file);
         }
-        pclose(student_output_file);
     }
 
     // Compare outputs
@@ -110,7 +122,7 @@ int main(int argc, char* argv[]) {
     command_line_args *cmd_args = parse_command_line_args(argc, argv);
 
     for (int i = 0; i < cmd_args->correct_files.size(); i++) {
-        if (compile_and_run(cmd_args->correct_files[i], cmd_args->target_files[i], cmd_args->input_args)) {
+        if (compile_and_run(cmd_args->correct_files[i], cmd_args->target_files[i], cmd_args->input_args, cmd_args->test_input_dir)) {
             std::cout << "Results for " << cmd_args->correct_files[i] << " vs " << cmd_args->target_files[i] << ": Correct" << std::endl;
         } else {
             std::cout << "Results for " << cmd_args->correct_files[i] << " vs " << cmd_args->target_files[i] << ": Incorrect" << std::endl;
