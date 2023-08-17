@@ -29,7 +29,7 @@ command_line_args *parse_command_line_args(int argc, char* argv[]) {
     command_line_args *args = init();
 
     int opt;
-    while ((opt = getopt(argc, argv, "i:c:t:a:")) != -1) {
+    while ((opt = getopt(argc, argv, "i:c:t:a")) != -1) {
         switch (opt) {
             case 'i':
                 args->test_input_dir = optarg;
@@ -49,6 +49,7 @@ command_line_args *parse_command_line_args(int argc, char* argv[]) {
                 }
                 break;
             case 'a':
+                if (optarg == NULL) break;
                 args->input_args = optarg;
                 break;
             default:
@@ -62,14 +63,16 @@ command_line_args *parse_command_line_args(int argc, char* argv[]) {
 
 bool compile_and_run(const std::string& solution_path, const std::string& student_path, const std::string& args, const std::string& input_dir) {
     // Compile solution
-    std::string compile_command_solution = "g++ -std=c++11 " + solution_path + " -o solution";
+    // std::string compile_command_solution = "g++ -std=c++11 " + solution_path + " -o solution";
+    std::string compile_command_solution = "g++ -std=c++11 driver.cpp treeprintx.cpp treex.cpp -I./ -L./ -lnowic_mac -o solution";
     if (std::system(compile_command_solution.c_str()) != 0) {
         std::cerr << "Error compiling solution" << std::endl;
         return false;
     }
 
     // Compile student's code
-    std::string compile_command_student = "g++ -std=c++11 " + student_path + " -o student";
+    // std::string compile_command_student = "g++ -std=c++11 " + student_path + " -o student";
+    std::string compile_command_student = "g++ -std=c++11 driver.cpp treeprintx.cpp treex.cpp -I./ -L./ -lnowic_mac -o student";
     if (std::system(compile_command_student.c_str()) != 0) {
         std::cerr << "Error compiling student's code" << std::endl;
         return false;
@@ -107,6 +110,9 @@ bool compile_and_run(const std::string& solution_path, const std::string& studen
             pclose(student_output_file);
         }
     }
+
+    std::cout << "Solution output: " << solution_output << std::endl;
+    std::cout << "Student output: " << student_output << std::endl;
 
     // Compare outputs
     if (solution_output == student_output) {
