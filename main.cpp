@@ -35,7 +35,7 @@ command_line_args *parse_command_line_args(int argc, char* argv[]) {
                 args->input_args = optarg;
                 break;
             default:
-                std::cerr << "Usage: " << argv[0] << " -i test_input_dir -c \"correct_args\" -t \"target_args\" -a args" << std::endl;
+                std::cerr << "Usage: " << argv[0] << " -i test_input_dir -c \"correct_args\" -t \"target_args\" -a \"args\"" << std::endl;
                 exit(EXIT_FAILURE);
         }
     }
