@@ -19,7 +19,7 @@ Example run:
 `-c`: the compilation arguments for the solution<br>
 `-t`: the compilation arguments for the student's code<br>
 `-a`: the command-line arguments for the exe files
-* The last three arguments must be wrapped in quotations
+* The last three arguments (`-c`, `-t`, `-a`) must be wrapped in quotations
 
 ## Test Run
 Test run using files for [nowic](https://github.com/idebtor/nowic), psets/pset9/
