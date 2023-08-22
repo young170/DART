@@ -1,0 +1,16 @@
+# include file
+include/*.h
+
+# lib files
+lib/*.a
+
+# solution files
+solution/*.cpp
+
+# student files
+student/*.cpp
+
+# ~.o and ~.exe
+*.o
+*.exe
+*.out

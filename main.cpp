@@ -10,23 +10,13 @@
 
 struct command_line_args {
     std::string test_input_dir;
-    std::vector<std::string> correct_files;
-    std::vector<std::string> target_files;
+    std::string correct_args;
+    std::string target_args;
     std::string input_args;
 };
 
-
-command_line_args *init() {
-    command_line_args *tmp = new command_line_args;
-
-    tmp->correct_files = std::vector<std::string>();
-    tmp->target_files = std::vector<std::string>();
-
-    return tmp;
-}
-
 command_line_args *parse_command_line_args(int argc, char* argv[]) {
-    command_line_args *args = init();
+    command_line_args *args = new command_line_args;
 
     int opt;
     while ((opt = getopt(argc, argv, "i:c:t:a")) != -1) {
@@ -35,25 +25,17 @@ command_line_args *parse_command_line_args(int argc, char* argv[]) {
                 args->test_input_dir = optarg;
                 break;
             case 'c':
-                optind--;
-                while (optind < argc && argv[optind][0] != '-') {
-                    args->correct_files.push_back(argv[optind]);
-                    optind++;
-                }
+                args->correct_args = optarg;
                 break;
             case 't':
-                optind--;
-                while (optind < argc && argv[optind][0] != '-') {
-                    args->target_files.push_back(argv[optind]);
-                    optind++;
-                }
+                args->target_args = optarg;
                 break;
             case 'a':
                 if (optarg == NULL) break;
                 args->input_args = optarg;
                 break;
             default:
-                std::cerr << "Usage: " << argv[0] << " -i test_input_dir -c correct_file(s) -t target_file(s) -a input_argument(s)" << std::endl;
+                std::cerr << "Usage: " << argv[0] << " -i test_input_dir -c \"correct_args\" -t \"target_args\" -a args" << std::endl;
                 exit(EXIT_FAILURE);
         }
     }
@@ -61,27 +43,24 @@ command_line_args *parse_command_line_args(int argc, char* argv[]) {
     return args;
 }
 
-bool compile_and_run(const std::string& solution_path, const std::string& student_path, const std::string& args, const std::string& input_dir) {
+bool compile_and_run(const std::string &solution_path, const std::string &student_path, const std::string& args, const std::string& input_dir) {
     // Compile solution
-    // std::string compile_command_solution = "g++ -std=c++11 " + solution_path + " -o solution";
-    std::string compile_command_solution = "g++ -std=c++11 driver.cpp treeprintx.cpp treex.cpp -I./ -L./ -lnowic_mac -o solution";
-    if (std::system(compile_command_solution.c_str()) != 0) {
+    if (std::system(solution_path.c_str()) != 0) {
         std::cerr << "Error compiling solution" << std::endl;
         return false;
     }
 
     // Compile student's code
-    // std::string compile_command_student = "g++ -std=c++11 " + student_path + " -o student";
-    std::string compile_command_student = "g++ -std=c++11 driver.cpp treeprintx.cpp treex.cpp -I./ -L./ -lnowic_mac -o student";
-    if (std::system(compile_command_student.c_str()) != 0) {
-        std::cerr << "Error compiling student's code" << std::endl;
+    if (std::system(student_path.c_str()) != 0) {
+        std::cerr << "Error compiling student" << std::endl;
         return false;
     }
 
     // Prepare the input files
     std::vector<std::string> input_files;
     std::string input_path = input_dir + "/";
-    for (const auto& entry : std::__fs::filesystem::directory_iterator(input_path)) {
+    for (const auto& entry : std::filesystem::directory_iterator(input_path)) {
+        std::cout << entry.path().string() << std::endl;
         input_files.push_back(entry.path().string());
     }
 
@@ -127,12 +106,10 @@ bool compile_and_run(const std::string& solution_path, const std::string& studen
 int main(int argc, char* argv[]) {
     command_line_args *cmd_args = parse_command_line_args(argc, argv);
 
-    for (int i = 0; i < cmd_args->correct_files.size(); i++) {
-        if (compile_and_run(cmd_args->correct_files[i], cmd_args->target_files[i], cmd_args->input_args, cmd_args->test_input_dir)) {
-            std::cout << "Results for " << cmd_args->correct_files[i] << " vs " << cmd_args->target_files[i] << ": Correct" << std::endl;
-        } else {
-            std::cout << "Results for " << cmd_args->correct_files[i] << " vs " << cmd_args->target_files[i] << ": Incorrect" << std::endl;
-        }
+    if (compile_and_run(cmd_args->correct_args, cmd_args->target_args, cmd_args->input_args, cmd_args->test_input_dir)) {
+        std::cout << "Correct" << std::endl;
+    } else {
+        std::cout << "Incorrect" << std::endl;
     }
 
     delete cmd_args;
